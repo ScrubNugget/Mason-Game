@@ -1,10 +1,6 @@
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Ellipse2D;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -12,52 +8,139 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+/// = ANDREW
+// = MASON
+
 public class Cave extends JPanel implements KeyListener {
-    BufferedImage player;
+	Dimension screenSize;
+	BufferedImage buffer;
+
+	Player player;
+	Player enemy;
+
 	int imgxpos;
 	int imgypos;
 	int bx;
 	int by;
-	Map m = new Map();
 
 	public Cave() {
 	    setBackground(Color.black);
+	    setIgnoreRepaint(true);
+	    addKeyListener(this);
+	    setFocusable(true);
 
-		m = new Map();
 		imgxpos = 0;
 		imgypos = 0;
 		bx = 0;
 		by = 0;
 	}
 
-	@Override
-    public void paintComponent(Graphics g) {
-	    super.paintComponent(g);
+	///MAKE THE GAME LOOP, REFRESH EVERY 15 MILLISECONDS
+	public void startGame() {
+		Initialize();
+		while (true) {
+			try {
+				update();
+				checkCollisions();
+				drawBuffer();
+				drawScreen();
+				Thread.sleep(15);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-	    drawGround(g);
-    }
+	public void Initialize() {
+		///Get screen size
+		screenSize = Application.size;
 
-    //DRAW GROUND METHOD -- ANDREW MATAYKA
-    private void drawGround(Graphics g) {
+		///Maybe make the buffer size dynamic?
+		buffer = new BufferedImage(screenSize.width, screenSize.height, BufferedImage.TYPE_INT_RGB);
+
+		///CREATE PLAYER AND ENEMY
+		player = new Player(null, 100, 100, 10, 10, 10, 10);
+		enemy = new Player(null, 200, 100, 10, 10, 10, 10);
+
+		///LOAD IMAGES HERE
 		try {
-			player = ImageIO.read(getClass().getResource("/resources/Chair_Skeleton.gif"));
+			player.setImage(ImageIO.read(getClass().getResource("/resources/Chair_Skeleton.gif")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		///END
+	}
 
-		Graphics2D g2d = (Graphics2D) g;
+	///NEW DRAW METHOD - ANDREW
+	public void drawBuffer() {
+		Graphics2D b = buffer.createGraphics();
 
+		///IMPLEMENTING ANTI ALIASING
 		RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		rh.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-		g2d.setRenderingHints(rh);
+		b.setRenderingHints(rh);
 
-		Dimension size = getSize();
-		double w = size.getWidth();
-		double h = size.getHeight();
+		///DRAWING PLAYER AND ENEMY, AS WELL AS SETTING BACKGROUND COLOR
+		b.setColor(Color.black);
+		b.fillRect(0, 0, screenSize.width, screenSize.height);
 
-		//DRAWING MAP -- ANDREW MATAYKA
+		b.setColor(Color.red);
+		b.drawImage(player.getImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), this);
+		b.setColor(Color.blue);
+		b.fillRect(enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight());
+
+		///DRAWING WALLS AROUND BORDER
+		for (int y = 0; y < (int)(screenSize.height / 50); y++) {
+			drawBlock(0, y * 50, b);
+			drawBlock(screenSize.width - 50, y * 50, b);
+		}
+		for (int x = 0; x < (int)(screenSize.width / 50) + 1; x++) {
+			drawBlock(x * 50, 0, b);
+			drawBlock(x * 50, screenSize.height - 50, b);
+		}
+		System.out.println(screenSize.width / 50);
+		///END
+
+		///DRAWING STRINGS FOR DATA
+		b.setColor(Color.white);
+		b.drawString("" + player.getX() + ", " + player.getY(), 10, 20);
+		b.drawString("" + player.collision + " | " + player.getCollisionDirection(enemy.getBounds()), 10, 40);
+
+		///ENDING DRAW METHODS AND DISPOSING GRAPHICS
+		b.dispose();
+	}
+
+	///RESPONSIBLE FOR DRAWING SINGLE BLOCK AT COORDINATES
+	public void drawBlock(int xCord, int yCord, Graphics2D g) {
+		g.setColor(Color.lightGray);
+		g.fillRect(xCord, yCord, 50, 50);
+
+		///ADD COLLISION DETECTION
+		player.getCollisionDirection(new Rectangle(xCord, yCord, 50, 50));
+	}
+
+	//NO TOUCH | Draws the buffer to the screen so we can draw anything to the screen
+	public void drawScreen() {
+		Graphics2D g = (Graphics2D)this.getGraphics();
+
+		g.drawImage(buffer,0,0,this);
+		Toolkit.getDefaultToolkit().sync();
+		g.dispose();
+	}
+
+	public void checkCollisions() {
+		if (player.getBounds().intersects(enemy.getBounds()))
+			player.collision = true;
+		else
+			player.collision = false;
+	}
+
+	/*
+    //DRAW GROUND METHOD
+    private void drawGround(Graphics g) {
+		//DRAWING MAP
 		for (int x = 0; x < 20; x++) {
 			for (int y = 0; y < 20; y++) {
 				if (m.getCoordinates(x, y) == 1) {
@@ -73,46 +156,58 @@ public class Cave extends JPanel implements KeyListener {
 					g2d.fillRect(x*50, y*50, 50, 50);
 				}
 				if (m.getCoordinates(x, y) == 4) {
-					g2d.setColor(Color.darkGray);
+					g2d.setColor(Color.magenta);
 					g2d.fillRect(x*50, y*50, 50, 50);
 				}
 			}
 		}
+		//END
 		g2d.setColor(Color.white);
-		g2d.drawImage(player, imgxpos, imgypos, 50, 50, this);
+		g2d.drawImage(player.getImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), this);
 
 		g2d.setColor(Color.green);
-		g2d.drawString("" + imgxpos + ", " + imgypos, 10, 20);
+	}
+	*/
+
+	///UPDATE CALLED EVERY FRAME
+	public void update() {
+		player.Move();
 	}
 
+	//CALLED ON KEY PRESS
 	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == 37) {
-			//boolean b = m.West();
-			//if (b == true)
-				imgxpos = imgxpos - 50;// Left Arrow=37
+		int key = e.getKeyCode();
+		if (key == KeyEvent.VK_LEFT) {
+			player.left = true;
 		}
-		if (e.getKeyCode() == 38) {
-			//boolean b = m.North();
-			//if (b == true)
-				imgypos = imgypos - 50;// Up Arrow=38
+		if (key == KeyEvent.VK_RIGHT) {
+			player.right = true;
 		}
-		if (e.getKeyCode() == 39) {
-			//boolean b = m.East();
-			//if (b == true)
-				imgxpos = imgxpos + 50;// Right Arrow=39
+		if (key == KeyEvent.VK_UP) {
+			player.up = true;
 		}
-		if (e.getKeyCode() == 40) {
-			//boolean b = m.South();
-			//if (b == true)
-				imgypos = imgypos + 50;// Down Arrow=40
+		if (key == KeyEvent.VK_DOWN) {
+			player.down = true;
 		}
+	}
 
-		repaint();
+	//CALLED ON KEY RELEASE
+	public void keyReleased(KeyEvent e) {
+		int key = e.getKeyCode();
+		if (key == KeyEvent.VK_LEFT) {
+			player.left = false;
+		}
+		if (key == KeyEvent.VK_RIGHT) {
+			player.right = false;
+		}
+		if (key == KeyEvent.VK_UP) {
+			player.up = false;
+		}
+		if (key == KeyEvent.VK_DOWN) {
+			player.down = false;
+		}
 	}
 
 	public void keyTyped(KeyEvent e) {
-	}
-
-	public void keyReleased(KeyEvent e) {
 	}
 }
