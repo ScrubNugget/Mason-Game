@@ -1,11 +1,10 @@
-import java.awt.*;
 import java.awt.image.*;
 
 public class Block extends Entity {
     int id = 0;
 
-    public Block(int ID, BufferedImage Texture, int xCord, int yCord) {
-        super(Texture, xCord, yCord);
+    public Block(int ID, BufferedImage Texture, int row, int col) {
+        super(Texture, row, col);
         id = ID;
     }
 
@@ -17,8 +16,8 @@ public class Block extends Entity {
         id = ID;
     }
 
-    public void setCoordinates(int xCord, int yCord) {
-        x = xCord;
-        y = yCord;
+    public void setCoordinates(int row, int col) {
+        super.setRow(row);
+        super.setColumn(col);
     }
 }

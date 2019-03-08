@@ -7,32 +7,25 @@ import javax.swing.JPanel;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.LinkedList;
 
 /// = ANDREW
 // = MASON
 
-public class Cave extends JPanel implements KeyListener {
+public class Cave extends JPanel implements KeyListener, MouseListener {
+	public static Map map = new Map();
+
 	Dimension screenSize;
 	BufferedImage buffer;
 
 	Player player;
-	Player enemy;
-
-	int imgxpos;
-	int imgypos;
-	int bx;
-	int by;
 
 	public Cave() {
 	    setBackground(Color.black);
 	    setIgnoreRepaint(true);
 	    addKeyListener(this);
+	    addMouseListener(this);
 	    setFocusable(true);
-
-		imgxpos = 0;
-		imgypos = 0;
-		bx = 0;
-		by = 0;
 	}
 
 	///MAKE THE GAME LOOP, REFRESH EVERY 15 MILLISECONDS
@@ -59,8 +52,8 @@ public class Cave extends JPanel implements KeyListener {
 		buffer = new BufferedImage(screenSize.width, screenSize.height, BufferedImage.TYPE_INT_RGB);
 
 		///CREATE PLAYER AND ENEMY
-		player = new Player(null, 100, 100, 10, 10, 10, 10);
-		enemy = new Player(null, 200, 100, 10, 10, 10, 10);
+		player = new Player(null, 1, 1, 10, 10, 10, 10);
+		//enemy = new Player(null, 200, 100, 10, 10, 10, 10);
 
 		///LOAD IMAGES HERE
 		try {
@@ -82,43 +75,26 @@ public class Cave extends JPanel implements KeyListener {
 
 		b.setRenderingHints(rh);
 
-		///DRAWING PLAYER AND ENEMY, AS WELL AS SETTING BACKGROUND COLOR
+		///SETTING BACKGROUND COLOR
 		b.setColor(Color.black);
 		b.fillRect(0, 0, screenSize.width, screenSize.height);
 
-		b.setColor(Color.red);
-		b.drawImage(player.getImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), this);
-		b.setColor(Color.blue);
-		b.fillRect(enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight());
-
-		///DRAWING WALLS AROUND BORDER
-		for (int y = 0; y < (int)(screenSize.height / 50); y++) {
-			drawBlock(0, y * 50, b);
-			drawBlock(screenSize.width - 50, y * 50, b);
-		}
-		for (int x = 0; x < (int)(screenSize.width / 50) + 1; x++) {
-			drawBlock(x * 50, 0, b);
-			drawBlock(x * 50, screenSize.height - 50, b);
-		}
-		System.out.println(screenSize.width / 50);
-		///END
+		b.drawImage(player.getImage(), player.getXCord(), player.getYCord(), player.getWidth(), player.getHeight(), this);
 
 		///DRAWING STRINGS FOR DATA
-		b.setColor(Color.white);
-		b.drawString("" + player.getX() + ", " + player.getY(), 10, 20);
-		b.drawString("" + player.collision + " | " + player.getCollisionDirection(enemy.getBounds()), 10, 40);
+		b.setColor(Color.yellow);
+		b.drawString("" + player.getXCord() + ", " + player.getYCord(), 10, 20);
+
+		for (int y = 0; y < 20; y++) {
+			String mapmap = "";
+			for (int x = 0; x < 20; x++) {
+				mapmap += (map.getCoordinates(y, x) + ",");
+			}
+			b.drawString(mapmap, 10, (y * 12) + 50);
+		}
 
 		///ENDING DRAW METHODS AND DISPOSING GRAPHICS
 		b.dispose();
-	}
-
-	///RESPONSIBLE FOR DRAWING SINGLE BLOCK AT COORDINATES
-	public void drawBlock(int xCord, int yCord, Graphics2D g) {
-		g.setColor(Color.lightGray);
-		g.fillRect(xCord, yCord, 50, 50);
-
-		///ADD COLLISION DETECTION
-		player.getCollisionDirection(new Rectangle(xCord, yCord, 50, 50));
 	}
 
 	//NO TOUCH | Draws the buffer to the screen so we can draw anything to the screen
@@ -131,46 +107,15 @@ public class Cave extends JPanel implements KeyListener {
 	}
 
 	public void checkCollisions() {
-		if (player.getBounds().intersects(enemy.getBounds()))
-			player.collision = true;
-		else
-			player.collision = false;
 	}
-
-	/*
-    //DRAW GROUND METHOD
-    private void drawGround(Graphics g) {
-		//DRAWING MAP
-		for (int x = 0; x < 20; x++) {
-			for (int y = 0; y < 20; y++) {
-				if (m.getCoordinates(x, y) == 1) {
-					g2d.setColor(Color.red);
-					g2d.fillRect(x*50, y*50, 50, 50);
-				}
-				if (m.getCoordinates(x, y) == 2) {
-					g2d.setColor(Color.blue);
-					g2d.fillRect(x*50, y*50, 50, 50);
-				}
-				if (m.getCoordinates(x, y) == 3) {
-					g2d.setColor(Color.yellow);
-					g2d.fillRect(x*50, y*50, 50, 50);
-				}
-				if (m.getCoordinates(x, y) == 4) {
-					g2d.setColor(Color.magenta);
-					g2d.fillRect(x*50, y*50, 50, 50);
-				}
-			}
-		}
-		//END
-		g2d.setColor(Color.white);
-		g2d.drawImage(player.getImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), this);
-
-		g2d.setColor(Color.green);
-	}
-	*/
 
 	///UPDATE CALLED EVERY FRAME
 	public void update() {
+		try {
+			Thread.sleep(75);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		player.Move();
 	}
 
@@ -209,5 +154,22 @@ public class Cave extends JPanel implements KeyListener {
 	}
 
 	public void keyTyped(KeyEvent e) {
+	}
+
+	public void mouseExited(MouseEvent e) {
+	}
+
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	public void mouseClicked(MouseEvent e) {
+		System.out.println("MOUSE INFO: (" + e.getX() + " ," + e.getY() + ")");
+	}
+
+	public void mousePressed(MouseEvent e) {
+
+	}
+
+	public void mouseReleased(MouseEvent e) {
 	}
 }

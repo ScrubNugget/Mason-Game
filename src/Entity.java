@@ -3,13 +3,13 @@ import java.awt.image.BufferedImage;
 
 public class Entity {
     ///0 right; 1 left; 2 up; 3 down;
-    int x, y, speed, width, height, lastDirection;
-    boolean up, down, right, left, collision;
+    int row, col, speed, width, height, x, y;
+    boolean up, down, right, left;
     BufferedImage image;
 
-    public Entity (int xCord, int yCord) {
-        x = xCord;
-        y = yCord;
+    public Entity (int r, int c) {
+        row = r;
+        col = c;
         speed = 3;
         width = 50;
         height = 50;
@@ -18,12 +18,13 @@ public class Entity {
         down = false;
         right = false;
         left = false;
-        collision = false;
+        x = col * speed;
+        y = row * speed;
     }
 
-    public Entity (BufferedImage entityImage, int xCord, int yCord) {
-        x = xCord;
-        y = yCord;
+    public Entity (BufferedImage entityImage, int r, int c) {
+        row = r;
+        col = c;
         speed = 3;
         width = 50;
         height = 50;
@@ -32,16 +33,21 @@ public class Entity {
         down = false;
         right = false;
         left = false;
-        collision = false;
+        x = col * speed;
+        y = row * speed;
     }
 
-    public int getX() {
-        return x;
+    public int getRow() {
+        return row;
     }
 
-    public int getY() {
-        return y;
+    public int getColumn() {
+        return col;
     }
+
+    public int getXCord() { return (col * speed); }
+
+    public int getYCord() { return (row * speed); }
 
     public int getWidth() {
         return width;
@@ -51,10 +57,11 @@ public class Entity {
         return height;
     }
 
-    public Rectangle getBounds() {
-        return new Rectangle(getX(),getY(),getWidth(),getHeight());
-    }
+    //public Rectangle getBounds() {
+    //    return new Rectangle(getRow() * speed,getColumn() * speed,getWidth(),getHeight());
+    //}
 
+    /*
     public String getCollisionDirection(Rectangle entity) {
         ///RIGHT COLLISION OF PLAYER
         ///LEFT || RIGHT
@@ -106,35 +113,57 @@ public class Entity {
 
         return "Error";
     }
+    */
+
+    public String getCollisionDirection(Rectangle entity) {
+
+        return "Error";
+    }
 
     public BufferedImage getImage() {
         return image;
     }
 
-    public void setX(int xCord) {
-        x = xCord;
+    public void setRow(int r) {
+        row = r;
     }
 
-    public void setY(int yCord) {
-        y = yCord;
+    public void setColumn(int c) {
+        col = c;
     }
 
     public void setImage(BufferedImage entityImage) {
         image = entityImage;
     }
 
+    public void setSpeed(int s) {
+        speed = s;
+    }
+
     public void Move() {
         if (up) {
-            y -= speed;
+            Cave.map.setCoordinates(0, row, col);
+            row--;
+            y = row * speed;
+            Cave.map.setCoordinates(-1, row, col);
         }
         if (down) {
-            y += speed;;
+            Cave.map.setCoordinates(0, row, col);
+            row++;
+            y = row * speed;
+            Cave.map.setCoordinates(-1, row, col);
         }
         if (left) {
-            x -= speed;
+            Cave.map.setCoordinates(0, row, col);
+            col--;
+            x = col * speed;
+            Cave.map.setCoordinates(-1, row, col);
         }
         if (right) {
-            x += speed;
+            Cave.map.setCoordinates(0, row, col);
+            col++;
+            x = col * speed;
+            Cave.map.setCoordinates(-1, row, col);
         }
     }
 }
