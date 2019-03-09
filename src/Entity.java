@@ -2,15 +2,15 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class Entity {
-    ///0 right; 1 left; 2 up; 3 down;
     int row, col, speed, width, height, x, y;
     boolean up, down, right, left;
+
     BufferedImage image;
 
-    public Entity (int r, int c) {
+    public Entity (int c, int r) {
         row = r;
         col = c;
-        speed = 3;
+        speed = 50;
         width = 50;
         height = 50;
         image = null;
@@ -22,10 +22,10 @@ public class Entity {
         y = row * speed;
     }
 
-    public Entity (BufferedImage entityImage, int r, int c) {
+    public Entity (BufferedImage entityImage, int c, int r) {
         row = r;
         col = c;
-        speed = 3;
+        speed = 50;
         width = 50;
         height = 50;
         image = entityImage;
@@ -115,11 +115,6 @@ public class Entity {
     }
     */
 
-    public String getCollisionDirection(Rectangle entity) {
-
-        return "Error";
-    }
-
     public BufferedImage getImage() {
         return image;
     }
@@ -142,28 +137,52 @@ public class Entity {
 
     public void Move() {
         if (up) {
-            Cave.map.setCoordinates(0, row, col);
-            row--;
-            y = row * speed;
-            Cave.map.setCoordinates(-1, row, col);
+            if (!(row - 1 < 0)) {
+                if (Cave.map.getCoordinates(row - 1, col) != null) {
+                    if (Cave.map.getCoordinates(row -1, col).id == 0) {
+                        Cave.map.setCoordinates(0, row, col);
+                        row--;
+                        y = row * speed;
+                        Cave.map.setCoordinates(-1, row, col);
+                    }
+                }
+            }
         }
         if (down) {
-            Cave.map.setCoordinates(0, row, col);
-            row++;
-            y = row * speed;
-            Cave.map.setCoordinates(-1, row, col);
+            if (!(row + 1 >= Cave.map.getBlockHeight())) {
+                if (Cave.map.getCoordinates(row + 1, col) != null) {
+                    if (Cave.map.getCoordinates(row + 1, col).id == 0) {
+                        Cave.map.setCoordinates(0, row, col);
+                        row++;
+                        y = row * speed;
+                        Cave.map.setCoordinates(-1, row, col);
+                    }
+                }
+            }
         }
         if (left) {
-            Cave.map.setCoordinates(0, row, col);
-            col--;
-            x = col * speed;
-            Cave.map.setCoordinates(-1, row, col);
+            if (!(col - 1 < 0)) {
+                if (Cave.map.getCoordinates(row, col - 1) != null) {
+                    if (Cave.map.getCoordinates(row, col - 1).id == 0) {
+                        Cave.map.setCoordinates(0, row, col);
+                        col--;
+                        x = col * speed;
+                        Cave.map.setCoordinates(-1, row, col);
+                    }
+                }
+            }
         }
         if (right) {
-            Cave.map.setCoordinates(0, row, col);
-            col++;
-            x = col * speed;
-            Cave.map.setCoordinates(-1, row, col);
+            if (!(col + 1 >= Cave.map.getBlockWidth())) {
+                if (Cave.map.getCoordinates(row, col + 1) != null) {
+                    if (Cave.map.getCoordinates(row, col + 1).id == 0) {
+                        Cave.map.setCoordinates(0, row, col);
+                        col++;
+                        x = col * speed;
+                        Cave.map.setCoordinates(-1, row, col);
+                    }
+                }
+            }
         }
     }
 }

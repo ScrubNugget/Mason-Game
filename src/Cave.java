@@ -13,7 +13,9 @@ import java.util.LinkedList;
 // = MASON
 
 public class Cave extends JPanel implements KeyListener, MouseListener {
-	public static Map map = new Map();
+	public static Map map = new Map(25, 15);
+
+	public LinkedList<Block> blockList = new LinkedList<Block>();
 
 	Dimension screenSize;
 	BufferedImage buffer;
@@ -70,25 +72,44 @@ public class Cave extends JPanel implements KeyListener, MouseListener {
 
 		///IMPLEMENTING ANTI ALIASING
 		RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
 		rh.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-
 		b.setRenderingHints(rh);
 
 		///SETTING BACKGROUND COLOR
 		b.setColor(Color.black);
 		b.fillRect(0, 0, screenSize.width, screenSize.height);
 
+		///DRAWING PLAYER
 		b.drawImage(player.getImage(), player.getXCord(), player.getYCord(), player.getWidth(), player.getHeight(), this);
+
+		///IF DEBUGGING DRAW SOME EXTRA STUFF
+		if (Application.debuging) {
+			b.setColor(Color.red);
+			b.drawRect(player.getXCord(), player.getYCord(), player.getWidth(), player.getHeight());
+		}
 
 		///DRAWING STRINGS FOR DATA
 		b.setColor(Color.yellow);
 		b.drawString("" + player.getXCord() + ", " + player.getYCord(), 10, 20);
 
-		for (int y = 0; y < 20; y++) {
+		///DRAWING BLOCKS
+		drawRoom(map, b);
+
+
+		///END
+
+		///DRAW CLICKED BLOCKS
+		for (int i = 0; i < blockList.size(); i++) {
+			drawBlock(blockList.get(i), b);
+		}
+		///END
+
+		///DEBUG MAP CLASS
+		b.setColor(Color.yellow);
+		for (int y = 0; y < map.getBlockHeight(); y++) {
 			String mapmap = "";
-			for (int x = 0; x < 20; x++) {
-				mapmap += (map.getCoordinates(y, x) + ",");
+			for (int x = 0; x < map.getBlockWidth(); x++) {
+				mapmap += (map.getCoordinates(y, x).getId() + "  ");
 			}
 			b.drawString(mapmap, 10, (y * 12) + 50);
 		}
@@ -97,7 +118,30 @@ public class Cave extends JPanel implements KeyListener, MouseListener {
 		b.dispose();
 	}
 
-	//NO TOUCH | Draws the buffer to the screen so we can draw anything to the screen
+	public void drawBlock(int c, int r, Graphics2D g) {
+		g.setColor(Color.lightGray);
+
+		Block testBlock = new Block(1, null, c, r, g);
+	}
+
+	public void drawBlock(Block block, Graphics2D g) {
+		g.setColor(Color.blue);
+
+		new Block(block.getId(), null, block.getColumn(), block.getRow(), g);
+	}
+
+	public void drawRoom(Map m, Graphics2D b) {
+		for (int c = 0; c < m.getBlockWidth(); c++) {
+			drawBlock(c, 0, b);
+			drawBlock(c, m.getBlockHeight() - 1, b);
+		}
+		for (int r = 0; r < m.getBlockHeight(); r++) {
+			drawBlock(0, r, b);
+			drawBlock(m.getBlockWidth() - 1, r, b);
+		}
+	}
+
+	///NO TOUCH | Draws the buffer to the screen so we can draw anything to the screen
 	public void drawScreen() {
 		Graphics2D g = (Graphics2D)this.getGraphics();
 
@@ -156,6 +200,7 @@ public class Cave extends JPanel implements KeyListener, MouseListener {
 	public void keyTyped(KeyEvent e) {
 	}
 
+	///REEEEE
 	public void mouseExited(MouseEvent e) {
 	}
 
@@ -164,6 +209,10 @@ public class Cave extends JPanel implements KeyListener, MouseListener {
 
 	public void mouseClicked(MouseEvent e) {
 		System.out.println("MOUSE INFO: (" + e.getX() + " ," + e.getY() + ")");
+
+
+		///TODO: IMPLEMENT BLOCK CHECK
+		blockList.add(new Block(2, null, e.getX() / 50, e.getY() / 50));
 	}
 
 	public void mousePressed(MouseEvent e) {

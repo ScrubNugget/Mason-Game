@@ -7,6 +7,8 @@ public class Application extends JFrame {
     public static Dimension size;
     Cave cave;
 
+    public static boolean debuging = true;
+
     public Application() {
         initUI();
     }
